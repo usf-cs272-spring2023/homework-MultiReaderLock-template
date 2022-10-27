@@ -1,15 +1,27 @@
-HomeworkName
+ReadWriteLock
 =================================================
 
 ![Points](../../blob/badges/points.svg)
 
-For this homework, you will **PENDING**.
+For this homework, you will create a conditional read write lock and a thread safe indexed set using that lock.
 
 ## Hints ##
 
 Below are some hints that may help with this homework assignment:
 
-- **PENDING**
+  - There are some differences between the `IndexedSet` version presented in lecture and the one provided here. You will have to determine if those differences change which methods should or shouldn't be overridden!
+
+  - The Javadoc comments for the `SimpleReadWriteLock` are written to give clues on the conditions the code should use for the `wait()` or `notifyAll()` calls.
+
+  - The lecture notes discuss a simple read write lock, but the one you must create is more complicated. In addition to tracking the number of readers and writers, it must track the **active** writer as well.
+
+      This includes *setting the active writer* when a thread acquires the write lock and *unsetting the active writer* when the lock is *fully* released. The active writer can acquire additional read or write locks as long as it is the active writer.
+
+      **Leave this part for the end, after you have a simple read write lock already working.**
+
+  - If your code is timing out, the best way to debug is to use logging. You need to figure out where your code is getting stuck, and debug from there.
+
+  - Passing the provided tests consistently is a good sign, but the tests may not catch all implementation issues. However, any time a test fails indicates there is a multithreading problem somewhere (even if it sometimes passes). Logging can help debug these cases.
 
 These hints are *optional*. There may be multiple approaches to solving this homework.
 
