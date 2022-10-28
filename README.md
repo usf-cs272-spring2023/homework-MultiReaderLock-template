@@ -21,7 +21,9 @@ Below are some hints that may help with this homework assignment:
 
   - If your code is timing out, the best way to debug is to use logging. You need to figure out where your code is getting stuck, and debug from there.
 
-  - Passing the provided tests consistently is a good sign, but the tests may not catch all implementation issues. However, any time a test fails indicates there is a multithreading problem somewhere (even if it sometimes passes). Logging can help debug these cases.
+  - If your code inconsistently passes tests, there is a multithreading problem somewhere (it just doesn't always pop up when you run due to the nondeterminism of multithreading code). Logging can help debug these cases.
+
+  - The thread-safe lock tests are not comprehensive! They will catch a few places locks are not used properly, but not necessarily everywhere.
 
 These hints are *optional*. There may be multiple approaches to solving this homework.
 
