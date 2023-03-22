@@ -11,7 +11,7 @@ Below are some hints that may help with this homework assignment:
 
   - There are some differences between the `IndexedSet` version presented in lecture and the one provided here. You will have to determine if those differences change which methods should or shouldn't be overridden!
 
-  - The Javadoc comments for the `SimpleReadWriteLock` are written to give clues on the conditions the code should use for the `wait()` or `notifyAll()` calls.
+  - The Javadoc comments are written to give clues on the conditions the code should use for the `wait()` or `notifyAll()` calls.
 
   - The lecture notes discuss a simple read write lock, but the one you must create is more complicated. In addition to tracking the number of readers and writers, it must track the **active** writer as well.
 
@@ -33,4 +33,4 @@ Use the "Tasks" view in Eclipse to find the `TODO` comments for what need to be 
 
 The tests are provided in the `src/test/` directory; do not modify any of the files in that directory. Check the run details on GitHub Actions for how many points each test group is worth. 
 
-See the [Homework Guides](https://usf-cs272-fall2022.github.io/guides/homework/) for additional details on homework requirements and submission.
+See the [Homework Resources](https://usf-cs272-spring2023.github.io/resources/homework/) for additional details on homework requirements and submission.
