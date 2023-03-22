@@ -8,7 +8,7 @@ package edu.usfca.cs272;
  * @see ReadWriteLock
  *
  * @author CS 272 Software Development (University of San Francisco)
- * @version Fall 2022
+ * @version Spring 2023
  */
 public class ThreadSafeIndexedSet<E> extends IndexedSet<E> {
 	/** The lock used to protect concurrent access to the underlying set. */
