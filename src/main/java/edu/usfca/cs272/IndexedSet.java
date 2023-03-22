@@ -15,7 +15,7 @@ import java.util.TreeSet;
  * @param <E> element type sorted in set
  *
  * @author CS 272 Software Development (University of San Francisco)
- * @version Fall 2022
+ * @version Spring 2023
  */
 public class IndexedSet<E> {
 	/** Set of elements */
@@ -162,7 +162,7 @@ public class IndexedSet<E> {
 	 * @return unsorted copy
 	 */
 	public IndexedSet<E> unsortedCopy() {
-		// TODO Note unsortedCopy() is different from lecture example!
+		// TODO FYI: unsortedCopy() is different from lecture example!
 		IndexedSet<E> copy = new IndexedSet<>(false);
 		copy.addAll(set);
 		return copy;
@@ -174,7 +174,7 @@ public class IndexedSet<E> {
 	 * @return sorted copy
 	 */
 	public IndexedSet<E> sortedCopy() {
-	// TODO Note sortedCopy() is different from lecture example!
+		// TODO FYI: sortedCopy() is different from lecture example!
 		IndexedSet<E> copy = new IndexedSet<>(true);
 		copy.addAll(set);
 		return copy;
@@ -188,7 +188,7 @@ public class IndexedSet<E> {
 	 *   an unsorted copy of the indexed set
 	 */
 	public IndexedSet<E> copy(boolean sorted) {
-		// TODO Note copy() is different from lecture example!
+		// TODO FYI: copy() is different from lecture example!
 		return sorted ? sortedCopy() : unsortedCopy();
 	}
 
