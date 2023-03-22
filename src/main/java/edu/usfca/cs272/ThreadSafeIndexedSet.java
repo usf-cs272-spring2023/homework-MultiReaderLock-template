@@ -5,14 +5,14 @@ package edu.usfca.cs272;
  *
  * @param <E> element type
  * @see IndexedSet
- * @see ReadWriteLock
+ * @see MultiReaderLock
  *
  * @author CS 272 Software Development (University of San Francisco)
  * @version Spring 2023
  */
 public class ThreadSafeIndexedSet<E> extends IndexedSet<E> {
 	/** The lock used to protect concurrent access to the underlying set. */
-	private final ReadWriteLock lock;
+	private final MultiReaderLock lock;
 
 	/**
 	 * Initializes an unsorted thread-safe indexed set.
@@ -28,7 +28,7 @@ public class ThreadSafeIndexedSet<E> extends IndexedSet<E> {
 	 */
 	public ThreadSafeIndexedSet(boolean sorted) {
 		super(sorted);
-		lock = new ReadWriteLock();
+		lock = new MultiReaderLock();
 	}
 
 	/**

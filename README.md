@@ -1,4 +1,4 @@
-ReadWriteLock
+MultiReaderLock
 =================================================
 
 ![Points](../../blob/badges/points.svg)

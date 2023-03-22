@@ -1,6 +1,8 @@
 package edu.usfca.cs272;
+
 import java.util.ConcurrentModificationException;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -24,9 +26,9 @@ import org.apache.logging.log4j.Logger;
  * @see ReentrantReadWriteLock
  *
  * @author CS 272 Software Development (University of San Francisco)
- * @version Fall 2022
+ * @version Spring 2023
  */
-public class ReadWriteLock {
+public class MultiReaderLock {
 	/** The conditional lock used for reading. */
 	private final SimpleLock readerLock;
 
@@ -58,9 +60,9 @@ public class ReadWriteLock {
 	/**
 	 * Initializes a new simple read/write lock.
 	 */
-	public ReadWriteLock() {
-		readerLock = new SimpleReadLock();
-		writerLock = new SimpleWriteLock();
+	public MultiReaderLock() {
+		readerLock = new ReadLock();
+		writerLock = new WriteLock();
 
 		lock = new Object();
 
@@ -75,7 +77,7 @@ public class ReadWriteLock {
 	 *
 	 * @return the reader lock
 	 */
-	public SimpleLock read() {
+	public SimpleLock readLock() {
 		return readerLock;
 	}
 
@@ -84,7 +86,7 @@ public class ReadWriteLock {
 	 *
 	 * @return the writer lock
 	 */
-	public SimpleLock write() {
+	public SimpleLock writeLock() {
 		return writerLock;
 	}
 
@@ -132,7 +134,7 @@ public class ReadWriteLock {
 	 * Similar but simpler than {@link Lock}.
 	 *
 	 * @author CS 272 Software Development (University of San Francisco)
-	 * @version Fall 2022
+	 * @version Spring 2023
 	 */
 	public static interface SimpleLock {
 		/**
@@ -151,7 +153,7 @@ public class ReadWriteLock {
 	/**
 	 * Used to maintain simultaneous read operations.
 	 */
-	private class SimpleReadLock implements SimpleLock {
+	private class ReadLock implements SimpleLock {
 		/**
 		 * Controls access to the read lock. The active thread is forced to wait while
 		 * there are any active writers and it is not the active writer thread. Once
@@ -162,12 +164,9 @@ public class ReadWriteLock {
 		public void lock() {
 			/*
 			 * TODO This starts with the basic implementation from lecture (plus some
-			 * logging). You will eventually need to modify it to check for whether
-			 * there is an active writer.
+			 * logging). You will eventually need to modify it to check for whether there is
+			 * an active writer.
 			 */
-
-			log.debug("Acquiring read lock...");
-
 			try {
 				// TODO Note the lock object being used here and elsewhere
 				synchronized (lock) {
@@ -175,7 +174,6 @@ public class ReadWriteLock {
 						lock.wait();
 					}
 
-					assert writers == 0;
 					readers++;
 				}
 			}
@@ -183,8 +181,6 @@ public class ReadWriteLock {
 				log.catching(Level.DEBUG, ex);
 				Thread.currentThread().interrupt();
 			}
-
-			log.debug("Read lock acquired");
 		}
 
 		/**
@@ -203,7 +199,7 @@ public class ReadWriteLock {
 	/**
 	 * Used to maintain exclusive write operations.
 	 */
-	private class SimpleWriteLock implements SimpleLock {
+	private class WriteLock implements SimpleLock {
 		/**
 		 * Controls access to the write lock. The active thread is forced to wait while
 		 * there are any active readers or writers, and it is not the active writer

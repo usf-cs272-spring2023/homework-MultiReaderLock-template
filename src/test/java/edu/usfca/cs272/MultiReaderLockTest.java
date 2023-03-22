@@ -40,20 +40,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.opentest4j.AssertionFailedError;
 
 /**
- * Tests the {@link ReadWriteLock} and {@link ThreadSafeIndexedSet} classes.
+ * Tests the {@link MultiReaderLock} and {@link ThreadSafeIndexedSet} classes.
  *
  * @author CS 272 Software Development (University of San Francisco)
- * @version Fall 2022
+ * @version Spring 2023
  */
 @TestClassOrder(ClassOrderer.ClassName.class)
-public class ReadWriteLockTest {
+public class MultiReaderLockTest {
 	/*
 	 * TODO: Unless you are using logging, it will be difficult to determine why
 	 * your code is failing the tests!
 	 */
 
 	/**
-	 * Tests the {@link ReadWriteLock#read()} lock.
+	 * Tests the {@link MultiReaderLock#readLock()} lock.
 	 */
 	@Nested
 	@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -63,12 +63,12 @@ public class ReadWriteLockTest {
 		 */
 		@BeforeAll
 		public static void readLockImplemented() {
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 			Assertions.assertTimeoutPreemptively(timeout, () -> {
 				try {
-					lock.read().lock();
-					lock.read().unlock();
+					lock.readLock().lock();
+					lock.readLock().unlock();
 				}
 				catch (UnsupportedOperationException e) {
 					Assertions.fail("Implement the read lock to enable these tests.");
@@ -84,12 +84,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(1)
 		@ParameterizedTest(name = "{0} readers")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testReadersConcurrent(int readers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			CountDownLatch nullLatch = new CountDownLatch(0);
 
@@ -98,7 +98,7 @@ public class ReadWriteLockTest {
 			expected.addAll(Collections.nCopies(readers, "Unlocking Read"));
 
 			for (int i = 0; i < readers; i++) {
-				actions.add(new LockAction(actual, lock.read(), nullLatch, nullLatch));
+				actions.add(new LockAction(actual, lock.readLock(), nullLatch, nullLatch));
 			}
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
@@ -113,12 +113,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(2)
 		@ParameterizedTest(name = "{0} readers")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testReadersSequential(int readers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			Semaphore semaphore = new Semaphore(1);
 
@@ -132,13 +132,13 @@ public class ReadWriteLockTest {
 					public void execute() throws Throwable {
 						semaphore.acquire();
 
-						lock.read().lock();
+						lock.readLock().lock();
 						output(actual, "Locked Read");
 
 						Thread.sleep(WORKER_SLEEP);
 
 						output(actual, "Unlocking Read");
-						lock.read().unlock();
+						lock.readLock().unlock();
 
 						semaphore.release();
 					}
@@ -161,7 +161,7 @@ public class ReadWriteLockTest {
 	}
 
 	/**
-	 * Tests the {@link ReadWriteLock#read()} lock.
+	 * Tests the {@link MultiReaderLock#readLock()} lock.
 	 */
 	@Nested
 	@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -171,12 +171,12 @@ public class ReadWriteLockTest {
 		 */
 		@BeforeAll
 		public static void writeLockImplemented() {
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 			Assertions.assertTimeoutPreemptively(timeout, () -> {
 				try {
-					lock.write().lock();
-					lock.write().unlock();
+					lock.writeLock().lock();
+					lock.writeLock().unlock();
 				}
 				catch (UnsupportedOperationException e) {
 					Assertions.fail("Implement the write lock to enable these tests.");
@@ -192,12 +192,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(1)
 		@ParameterizedTest(name = "{0} writers")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testWritersConcurrent(int writers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			CountDownLatch nullLatch = new CountDownLatch(0);
 
@@ -206,7 +206,7 @@ public class ReadWriteLockTest {
 				expected.add("Locked Write");
 				expected.add("Unlocking Write");
 
-				actions.add(new LockAction(actual, lock.write(), nullLatch, nullLatch));
+				actions.add(new LockAction(actual, lock.writeLock(), nullLatch, nullLatch));
 			}
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
@@ -221,12 +221,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(2)
 		@ParameterizedTest(name = "{0} writers")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testWritersSequential(int writers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			Semaphore semaphore = new Semaphore(1);
 
@@ -240,13 +240,13 @@ public class ReadWriteLockTest {
 					public void execute() throws Throwable {
 						semaphore.acquire();
 
-						lock.write().lock();
+						lock.writeLock().lock();
 						output(actual, "Locked Write");
 
 						Thread.sleep(WORKER_SLEEP);
 
 						output(actual, "Unlocking Write");
-						lock.write().unlock();
+						lock.writeLock().unlock();
 
 						semaphore.release();
 					}
@@ -269,7 +269,7 @@ public class ReadWriteLockTest {
 	}
 
 	/**
-	 * Tests the {@link ReadWriteLock} read and write locks (and active writer).
+	 * Tests the {@link MultiReaderLock} read and write locks (and active writer).
 	 */
 	@Nested
 	@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -292,12 +292,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(1)
 		@ParameterizedTest(name = "{0} readers 1 writer")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testManyReadersOneWriter(int readers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			CountDownLatch readFirst = new CountDownLatch(1);
 			CountDownLatch nullLatch = new CountDownLatch(0);
@@ -307,13 +307,13 @@ public class ReadWriteLockTest {
 			expected.addAll(Collections.nCopies(readers, "Unlocking Read"));
 
 			for (int i = 0; i < readers; i++) {
-				actions.add(new LockAction(actual, lock.read(), nullLatch, readFirst));
+				actions.add(new LockAction(actual, lock.readLock(), nullLatch, readFirst));
 			}
 
 			// add one writer
 			expected.add("Locked Write");
 			expected.add("Unlocking Write");
-			actions.add(new LockAction(actual, lock.write(), readFirst, nullLatch));
+			actions.add(new LockAction(actual, lock.writeLock(), readFirst, nullLatch));
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
 			testActions(timeout, actions, expected, actual);
@@ -327,12 +327,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(2)
 		@ParameterizedTest(name = "1 writer {0} readers")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testOneWriterManyReader(int readers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			CountDownLatch writeFirst = new CountDownLatch(1);
 			CountDownLatch nullLatch = new CountDownLatch(0);
@@ -340,14 +340,14 @@ public class ReadWriteLockTest {
 			// add one writer
 			expected.add("Locked Write");
 			expected.add("Unlocking Write");
-			actions.add(new LockAction(actual, lock.write(), nullLatch, writeFirst));
+			actions.add(new LockAction(actual, lock.writeLock(), nullLatch, writeFirst));
 
 			// add multiple readers
 			expected.addAll(Collections.nCopies(readers, "Locked Read"));
 			expected.addAll(Collections.nCopies(readers, "Unlocking Read"));
 
 			for (int i = 0; i < readers; i++) {
-				actions.add(new LockAction(actual, lock.read(), writeFirst, nullLatch));
+				actions.add(new LockAction(actual, lock.readLock(), writeFirst, nullLatch));
 			}
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
@@ -362,12 +362,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(3)
 		@ParameterizedTest(name = "{0} writers 1 reader")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testManyWritersOneReader(int writers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			CountDownLatch writeFirst = new CountDownLatch(writers);
 			CountDownLatch nullLatch = new CountDownLatch(0);
@@ -376,13 +376,13 @@ public class ReadWriteLockTest {
 			for (int i = 0; i < writers; i++) {
 				expected.add("Locked Write");
 				expected.add("Unlocking Write");
-				actions.add(new LockAction(actual, lock.write(), nullLatch, writeFirst));
+				actions.add(new LockAction(actual, lock.writeLock(), nullLatch, writeFirst));
 			}
 
 			// add one reader
 			expected.add("Locked Read");
 			expected.add("Unlocking Read");
-			actions.add(new LockAction(actual, lock.read(), writeFirst, nullLatch));
+			actions.add(new LockAction(actual, lock.readLock(), writeFirst, nullLatch));
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
 			testActions(timeout, actions, expected, actual);
@@ -396,12 +396,12 @@ public class ReadWriteLockTest {
 		 */
 		@Order(4)
 		@ParameterizedTest(name = "1 reader {0} writers")
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testOneReaderManyWriters(int writers) throws Throwable {
 			List<String> expected = new ArrayList<>();
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			ArrayList<Executable> actions = new ArrayList<>();
 			CountDownLatch readFirst = new CountDownLatch(1);
 			CountDownLatch nullLatch = new CountDownLatch(0);
@@ -409,13 +409,13 @@ public class ReadWriteLockTest {
 			// add one reader
 			expected.add("Locked Read");
 			expected.add("Unlocking Read");
-			actions.add(new LockAction(actual, lock.read(), nullLatch, readFirst));
+			actions.add(new LockAction(actual, lock.readLock(), nullLatch, readFirst));
 
 			// add multiple writers
 			for (int i = 0; i < writers; i++) {
 				expected.add("Locked Write");
 				expected.add("Unlocking Write");
-				actions.add(new LockAction(actual, lock.write(), readFirst, nullLatch));
+				actions.add(new LockAction(actual, lock.writeLock(), readFirst, nullLatch));
 			}
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
@@ -444,7 +444,7 @@ public class ReadWriteLockTest {
 	}
 
 	/**
-	 * Tests the {@link ReadWriteLock#write()} lock.
+	 * Tests the {@link MultiReaderLock} lock tracking of the active writer.
 	 */
 	@Nested
 	@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -472,27 +472,27 @@ public class ReadWriteLockTest {
 					"Unlocking Read", "Unlocking Read", "Unlocking Write");
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Executable action = () -> {
-				lock.write().lock();
+				lock.writeLock().lock();
 				output(actual, "Locked Write");
 
-				lock.read().lock();
+				lock.readLock().lock();
 				output(actual, "Locked Read");
 
-				lock.read().lock();
+				lock.readLock().lock();
 				output(actual, "Locked Read");
 
 				Thread.sleep(WORKER_SLEEP);
 
 				output(actual, "Unlocking Read");
-				lock.read().unlock();
+				lock.readLock().unlock();
 
 				output(actual, "Unlocking Read");
-				lock.read().unlock();
+				lock.readLock().unlock();
 
 				output(actual, "Unlocking Write");
-				lock.write().unlock();
+				lock.writeLock().unlock();
 			};
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
@@ -512,27 +512,27 @@ public class ReadWriteLockTest {
 					"Unlocking Write", "Unlocking Read", "Unlocking Write");
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Executable action = () -> {
-				lock.write().lock();
+				lock.writeLock().lock();
 				output(actual, "Locked Write");
 
-				lock.read().lock();
+				lock.readLock().lock();
 				output(actual, "Locked Read");
 
-				lock.write().lock();
+				lock.writeLock().lock();
 				output(actual, "Locked Write");
 
 				Thread.sleep(WORKER_SLEEP);
 
 				output(actual, "Unlocking Write");
-				lock.write().unlock();
+				lock.writeLock().unlock();
 
 				output(actual, "Unlocking Read");
-				lock.read().unlock();
+				lock.readLock().unlock();
 
 				output(actual, "Unlocking Write");
-				lock.write().unlock();
+				lock.writeLock().unlock();
 			};
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
@@ -541,7 +541,9 @@ public class ReadWriteLockTest {
 
 		/**
 		 * Tests that a single thread can acquire a write lock then a read lock without
-		 * releasing first the write lock.
+		 * releasing first the write lock. Often fails when the active writer is not
+		 * being unset properly.
+		 *
 		 * @throws Throwable if an exception occurs
 		 */
 		@Order(3)
@@ -553,38 +555,38 @@ public class ReadWriteLockTest {
 					"Locked Write", "Unlocking Write");
 			List<String> actual = new ArrayList<>();
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			CountDownLatch waitWrite = new CountDownLatch(1);
 			CountDownLatch waitRead = new CountDownLatch(1);
 
 			Executable writer = () -> {
-				lock.write().lock();
+				lock.writeLock().lock();
 				output(actual, "Locked Write");
 
 				output(actual, "Unlocking Write");
-				lock.write().unlock();
+				lock.writeLock().unlock();
 
 				waitWrite.countDown();
 				waitRead.await();
 
-				lock.write().lock();
+				lock.writeLock().lock();
 				output(actual, "Locked Write");
 
 				output(actual, "Unlocking Write");
-				lock.write().unlock();
+				lock.writeLock().unlock();
 			};
 
 			Executable reader = () -> {
 				waitWrite.await();
 
-				lock.read().lock();
+				lock.readLock().lock();
 				output(actual, "Locked Read");
 
 				waitRead.countDown();
 				Thread.sleep(WORKER_SLEEP);
 
 				output(actual, "Unlocking Read");
-				lock.read().unlock();
+				lock.readLock().unlock();
 			};
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * 2);
@@ -593,11 +595,21 @@ public class ReadWriteLockTest {
 	}
 
 	/**
-	 * Tests the {@link ReadWriteLock} read and write lock exceptions.
+	 * Tests the {@link MultiReaderLock} read and write lock exceptions.
 	 */
 	@Nested
 	@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 	public class E_LockExceptionTests {
+		/**
+		 * Does not run tests unless the locks are implemented.
+		 */
+		@BeforeAll
+		public static void bothLocksImplemented() {
+			Assertions.assertAll(
+					A_ReadLockTests::readLockImplemented,
+					B_WriteLockTests::writeLockImplemented);
+		}
+
 		/**
 		 * Tests an {@link IllegalStateException} is thrown as expected.
 		 */
@@ -607,11 +619,11 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
 			List<Executable> actions = List.of(() -> {
-				lock.read().unlock();
+				lock.readLock().unlock();
 			});
 
 			Executable test = () -> testActions(timeout, actions, expected, actual);
@@ -627,13 +639,13 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
 			List<Executable> actions = List.of(() -> {
-				lock.read().lock();
-				lock.read().unlock();
-				lock.read().unlock();
+				lock.readLock().lock();
+				lock.readLock().unlock();
+				lock.readLock().unlock();
 			});
 
 			Executable test = () -> testActions(timeout, actions, expected, actual);
@@ -649,11 +661,11 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
 			List<Executable> actions = List.of(() -> {
-				lock.write().unlock();
+				lock.writeLock().unlock();
 			});
 
 			Executable test = () -> testActions(timeout, actions, expected, actual);
@@ -669,13 +681,13 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
 			List<Executable> actions = List.of(() -> {
-				lock.write().lock();
-				lock.write().unlock();
-				lock.write().unlock();
+				lock.writeLock().lock();
+				lock.writeLock().unlock();
+				lock.writeLock().unlock();
 			});
 
 			Executable test = () -> testActions(timeout, actions, expected, actual);
@@ -691,12 +703,12 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
 			List<Executable> actions = List.of(() -> {
-				lock.read().lock();
-				lock.write().unlock();
+				lock.readLock().lock();
+				lock.writeLock().unlock();
 			});
 
 			Executable test = () -> testActions(timeout, actions, expected, actual);
@@ -712,12 +724,12 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
 			List<Executable> actions = List.of(() -> {
-				lock.write().lock();
-				lock.read().unlock();
+				lock.writeLock().lock();
+				lock.readLock().unlock();
 			});
 
 			Executable test = () -> testActions(timeout, actions, expected, actual);
@@ -735,18 +747,18 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 			CountDownLatch lockFirst = new CountDownLatch(1);
 
 			Executable lockAction = () -> {
-				lock.write().lock();
+				lock.writeLock().lock();
 				lockFirst.countDown();
 			};
 
 			Executable unlockAction = () -> {
 				lockFirst.await();
-				lock.write().unlock();
+				lock.writeLock().unlock();
 			};
 
 			List<Executable> actions = List.of(lockAction, unlockAction);
@@ -767,20 +779,20 @@ public class ReadWriteLockTest {
 			List<String> expected = new ArrayList<>(); // empty
 			List<String> actual = new ArrayList<>();   // empty
 
-			ReadWriteLock lock = new ReadWriteLock();
+			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 			CountDownLatch lockFirst = new CountDownLatch(1);
 
 			Executable lockAction = () -> {
-				lock.write().lock();
-				lock.write().lock();
-				lock.write().unlock();
+				lock.writeLock().lock();
+				lock.writeLock().lock();
+				lock.writeLock().unlock();
 				lockFirst.countDown();
 			};
 
 			Executable unlockAction = () -> {
 				lockFirst.await();
-				lock.write().unlock();
+				lock.writeLock().unlock();
 			};
 
 			List<Executable> actions = List.of(lockAction, unlockAction);
@@ -800,6 +812,16 @@ public class ReadWriteLockTest {
 
 		/** Thread-safe indexed set placeholder. */
 		public ThreadSafeIndexedSet<Integer> threadSet;
+
+		/**
+		 * Does not run tests unless the locks are implemented.
+		 */
+		@BeforeAll
+		public static void bothLocksImplemented() {
+			Assertions.assertAll(
+					A_ReadLockTests::readLockImplemented,
+					B_WriteLockTests::writeLockImplemented);
+		}
 
 		/**
 		 * Setup the placeholder indexed sets.
@@ -853,8 +875,7 @@ public class ReadWriteLockTest {
 			expected.removeAll(actual);
 
 			String debug = "%nThe following methods were not properly overridden: %s%n";
-			Assertions.assertTrue(expected.isEmpty(), () ->
-			debug.formatted(expected.toString()));
+			Assertions.assertTrue(expected.isEmpty(), () -> debug.formatted(expected.toString()));
 		}
 
 		/**
@@ -878,8 +899,7 @@ public class ReadWriteLockTest {
 					.collect(Collectors.toSet());
 
 			String debug = "%nThe following methods should not be overridden: %s%n";
-			Assertions.assertTrue(actual.isEmpty(), () ->
-			debug.formatted(actual.toString()));
+			Assertions.assertTrue(actual.isEmpty(), () -> debug.formatted(actual.toString()));
 		}
 
 		/**
@@ -923,7 +943,7 @@ public class ReadWriteLockTest {
 		 */
 		@Order(6)
 		@ParameterizedTest
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testAdd(int threads) throws Throwable {
 			int chunk = 100;
 			int last = chunk * threads;
@@ -941,9 +961,11 @@ public class ReadWriteLockTest {
 			}
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
-			timeoutActions(timeout, actions);
-			Assertions.assertEquals(serialSet.size(), threadSet.size());
-			Assertions.assertEquals(serialSet.toString(), threadSet.toString());
+			Assertions.assertAll(
+					() -> timeoutActions(timeout, actions),
+					() -> Assertions.assertEquals(serialSet.size(), threadSet.size()),
+					() -> Assertions.assertEquals(serialSet.toString(), threadSet.toString())
+			);
 		}
 
 		/**
@@ -953,7 +975,7 @@ public class ReadWriteLockTest {
 		 */
 		@Order(7)
 		@ParameterizedTest
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testAddAll(int threads) throws Throwable {
 			int chunk = 1000;
 			int last = chunk * threads;
@@ -974,9 +996,11 @@ public class ReadWriteLockTest {
 			}
 
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT * actions.size());
-			timeoutActions(timeout, actions);
-			Assertions.assertEquals(serialSet.size(), threadSet.size());
-			Assertions.assertEquals(serialSet.toString(), threadSet.toString());
+			Assertions.assertAll(
+					() -> timeoutActions(timeout, actions),
+					() -> Assertions.assertEquals(serialSet.size(), threadSet.size()),
+					() -> Assertions.assertEquals(serialSet.toString(), threadSet.toString())
+			);
 		}
 
 		/**
@@ -986,7 +1010,7 @@ public class ReadWriteLockTest {
 		 */
 		@Order(8)
 		@ParameterizedTest
-		@MethodSource("edu.usfca.cs272.ReadWriteLockTest#numThreads")
+		@MethodSource("edu.usfca.cs272.MultiReaderLockTest#numThreads")
 		public void testCopyAdd(int threads) throws Throwable {
 			int chunk = 100;
 			int last = chunk * threads;
@@ -1013,10 +1037,18 @@ public class ReadWriteLockTest {
 	public static final long WORKER_SLEEP = 250;
 
 	/** Amount of buffer to provide per worker. */
-	public static final long WORKER_TIMEOUT = Math.round(WORKER_SLEEP * 1.25);
+	public static final long WORKER_TIMEOUT = Math.round(WORKER_SLEEP * 2);
 
 	/** Used to provide debugging output if enabled. */
 	public static final Logger log = LogManager.getLogger();
+
+	/** Returns a new lock. Used to make it easy to swap lock types.
+	 *
+	 * @return a new lock object
+	 */
+	public static MultiReaderLock newLock() {
+		return new MultiReaderLock();
+	}
 
 	/**
 	 * Saves the message to the provided {@link StringBuffer} and logs the message
@@ -1070,8 +1102,10 @@ public class ReadWriteLockTest {
 	public static void testActions(Duration timeout,
 			List<Executable> actions, List<String> expected,
 			List<String> actual) throws Throwable {
-		timeoutActions(timeout, actions);
-		Assertions.assertLinesMatch(expected, actual);
+		Assertions.assertAll(
+				() -> timeoutActions(timeout, actions),
+				() -> Assertions.assertLinesMatch(expected, actual)
+		);
 	}
 
 	/**
@@ -1088,8 +1122,10 @@ public class ReadWriteLockTest {
 	public static void testActions(Duration timeout,
 			List<Executable> actions, Object expected,
 			Object actual) throws Throwable {
-		timeoutActions(timeout, actions);
-		Assertions.assertEquals(expected.toString(), actual.toString());
+		Assertions.assertAll(
+				() -> timeoutActions(timeout, actions),
+				() -> Assertions.assertEquals(expected.toString(), actual.toString())
+		);
 	}
 
 	/**
@@ -1099,8 +1135,7 @@ public class ReadWriteLockTest {
 	 * @param actions the actions
 	 * @throws Throwable if any exceptions occur
 	 */
-	public static void timeoutActions(Duration timeout,
-			List<Executable> actions) throws Throwable {
+	public static void timeoutActions(Duration timeout, List<Executable> actions) throws Throwable {
 		ExceptionCollector handler = new ExceptionCollector();
 
 		List<Worker> workers = actions.stream()
@@ -1194,8 +1229,7 @@ public class ReadWriteLockTest {
 		 * @param action the action to run
 		 * @param handler the handler for uncaught runtime exceptions
 		 */
-		public Worker(Executable action,
-				ExceptionCollector handler) {
+		public Worker(Executable action, ExceptionCollector handler) {
 			this.action = action;
 			this.setUncaughtExceptionHandler(handler);
 		}
@@ -1206,7 +1240,7 @@ public class ReadWriteLockTest {
 				action.execute();
 			}
 			catch (Throwable e) {
-				Assertions.fail(e); // force the current test to fail
+				Assertions.fail("Worker thread failed.", e);
 			}
 		}
 	}
@@ -1217,7 +1251,7 @@ public class ReadWriteLockTest {
 		private final List<String> actual;
 
 		/** Lock being tested */
-		private final ReadWriteLock.SimpleLock lock;
+		private final MultiReaderLock.SimpleLock lock;
 
 		/** Latch for before locking */
 		private final CountDownLatch beforeLock;
@@ -1236,15 +1270,15 @@ public class ReadWriteLockTest {
 		 * @param beforeLock the latch for before locking
 		 * @param afterLock the latch for after locking
 		 */
-		public LockAction(List<String> actual, ReadWriteLock.SimpleLock lock,
+		public LockAction(List<String> actual, MultiReaderLock.SimpleLock lock,
 				CountDownLatch beforeLock, CountDownLatch afterLock) {
 			this.actual = actual;
 			this.lock = lock;
 			this.beforeLock = beforeLock;
 			this.afterLock = afterLock;
 			this.lockType = switch (lock.getClass().getSimpleName()) {
-				case "SimpleReadLock" -> "Read";
-				case "SimpleWriteLock" -> "Write";
+				case "ReadLock" -> "Read";
+				case "WriteLock" -> "Write";
 				default -> "Unknown";
 			};
 		}
