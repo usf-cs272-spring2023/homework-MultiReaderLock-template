@@ -616,9 +616,6 @@ public class MultiReaderLockTest {
 		@Order(1)
 		@Test
 		public void testReadOnlyUnlock() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
@@ -626,7 +623,7 @@ public class MultiReaderLockTest {
 				lock.readLock().unlock();
 			});
 
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(IllegalStateException.class, test);
 		}
 
@@ -636,9 +633,6 @@ public class MultiReaderLockTest {
 		@Order(2)
 		@Test
 		public void testReadDoubleUnlock() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
@@ -648,7 +642,7 @@ public class MultiReaderLockTest {
 				lock.readLock().unlock();
 			});
 
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(IllegalStateException.class, test);
 		}
 
@@ -658,9 +652,6 @@ public class MultiReaderLockTest {
 		@Order(3)
 		@Test
 		public void testWriteOnlyUnlock() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
@@ -668,7 +659,7 @@ public class MultiReaderLockTest {
 				lock.writeLock().unlock();
 			});
 
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(IllegalStateException.class, test);
 		}
 
@@ -678,9 +669,6 @@ public class MultiReaderLockTest {
 		@Order(4)
 		@Test
 		public void testWriteDoubleUnlock() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
@@ -690,7 +678,7 @@ public class MultiReaderLockTest {
 				lock.writeLock().unlock();
 			});
 
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(IllegalStateException.class, test);
 		}
 
@@ -700,9 +688,6 @@ public class MultiReaderLockTest {
 		@Order(5)
 		@Test
 		public void testReadLockWriteUnlock() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
@@ -711,7 +696,7 @@ public class MultiReaderLockTest {
 				lock.writeLock().unlock();
 			});
 
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(IllegalStateException.class, test);
 		}
 
@@ -721,9 +706,6 @@ public class MultiReaderLockTest {
 		@Order(6)
 		@Test
 		public void testReadUnlockWriteLock() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 
@@ -732,7 +714,7 @@ public class MultiReaderLockTest {
 				lock.readLock().unlock();
 			});
 
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(IllegalStateException.class, test);
 		}
 
@@ -744,9 +726,6 @@ public class MultiReaderLockTest {
 		@Order(7)
 		@Test
 		public void testWrongWriter() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 			CountDownLatch lockFirst = new CountDownLatch(1);
@@ -762,7 +741,7 @@ public class MultiReaderLockTest {
 			};
 
 			List<Executable> actions = List.of(lockAction, unlockAction);
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(ConcurrentModificationException.class, test);
 		}
 
@@ -776,9 +755,6 @@ public class MultiReaderLockTest {
 		@Order(8)
 		@Test
 		public void testWrongWriterDouble() {
-			List<String> expected = new ArrayList<>(); // empty
-			List<String> actual = new ArrayList<>();   // empty
-
 			var lock = newLock();
 			Duration timeout = Duration.ofMillis(WORKER_TIMEOUT);
 			CountDownLatch lockFirst = new CountDownLatch(1);
@@ -796,7 +772,7 @@ public class MultiReaderLockTest {
 			};
 
 			List<Executable> actions = List.of(lockAction, unlockAction);
-			Executable test = () -> testActions(timeout, actions, expected, actual);
+			Executable test = () -> timeoutActions(timeout, actions);
 			Assertions.assertThrows(ConcurrentModificationException.class, test);
 		}
 	}
